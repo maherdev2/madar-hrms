@@ -1,0 +1,14 @@
+<script setup>
+import { Head, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import HrmsLayout from '@/Layouts/HrmsLayout.vue';
+const props = defineProps({ departments:Array, employees:Array });
+const editing = ref(null), show = ref(false);
+const form = useForm({ code:'',name:'',manager_employee_id:'' });
+const open = item => { editing.value=item; form.defaults({code:item?.code || '',name:item?.name || '',manager_employee_id:item?.manager_employee_id || ''}); form.reset(); show.value=true; };
+const save = () => { const options={onSuccess:()=>{show.value=false;form.reset();}}; editing.value ? form.put(route('departments.update',editing.value.id),options) : form.post(route('departments.store'),options); };
+</script>
+<template><Head title="الأقسام" /><HrmsLayout title="الأقسام" subtitle="هيكل المؤسسة والمدير المسؤول عن كل فريق."><template #actions><button class="btn-primary" @click="open(null)">إضافة قسم</button></template>
+    <section v-if="show" class="panel mb-6 p-5"><h2 class="mb-4 text-lg font-bold text-[#1F3A5F]">{{ editing ? 'تعديل القسم' : 'قسم جديد' }}</h2><form @submit.prevent="save" class="grid gap-4 sm:grid-cols-3"><div><label class="label" for="code">رمز القسم</label><input id="code" v-model.trim="form.code" class="field" required><p v-if="form.errors.code" class="error">{{ form.errors.code }}</p></div><div><label class="label" for="name">اسم القسم</label><input id="name" v-model.trim="form.name" class="field" required><p v-if="form.errors.name" class="error">{{ form.errors.name }}</p></div><div><label class="label" for="manager_employee_id">مدير القسم</label><select id="manager_employee_id" v-model="form.manager_employee_id" class="field"><option value="">بدون مدير</option><option v-for="e in employees" :key="e.id" :value="e.id">{{ e.first_name }} {{ e.last_name }}</option></select></div><div class="sm:col-span-3 flex gap-2"><button class="btn-primary" :disabled="form.processing">حفظ القسم</button><button type="button" class="btn-secondary" @click="show=false">إلغاء</button></div></form></section>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"><article v-for="d in departments" :key="d.id" class="panel p-5"><div class="flex items-start justify-between"><div><p class="text-xs font-semibold text-teal-700">{{ d.code }}</p><h2 class="mt-1 text-xl font-bold text-[#1F3A5F]">{{ d.name }}</h2></div><button class="text-sm font-semibold text-teal-700 hover:underline" @click="open(d)">تعديل</button></div><div class="mt-6 flex justify-between border-t border-slate-100 pt-4 text-sm"><div><span class="text-slate-500">المدير</span><p class="mt-1 font-semibold">{{ d.manager ? d.manager.first_name+' '+d.manager.last_name : 'غير محدد' }}</p></div><div><span class="text-slate-500">الموظفون</span><p class="mt-1 font-semibold">{{ d.employees_count }}</p></div></div></article></div>
+</HrmsLayout></template>
